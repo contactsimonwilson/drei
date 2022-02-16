@@ -13,6 +13,7 @@ type Props = JSX.IntrinsicElements['group'] & {
   backgroundColor?: string
   onChange?: (selected: THREE.Object3D[]) => void
   filter?: (selected: THREE.Object3D[]) => THREE.Object3D[]
+  isActive?: (event: MouseEvent) => boolean
 }
 
 export function Select({
@@ -23,6 +24,7 @@ export function Select({
   border = '1px solid #55aaff',
   backgroundColor = 'rgba(75, 160, 255, 0.1)',
   filter: customFilter = (item) => item,
+  isActive = (event) => event.shiftKey,
   ...props
 }: Props) {
   // @ts-expect-error new in @react-three/fiber@7.0.5
@@ -66,7 +68,7 @@ export function Select({
 
     let isDown = false
 
-    function prepareRay(event, vec) {
+    function prepareRay(event: PointerEvent, vec) {
       // https://github.com/pmndrs/react-three-fiber/pull/782
       // Events trigger outside of canvas when moved
       const { offsetX, offsetY } = raycaster.computeOffsets?.(event, get()) ?? event
@@ -74,7 +76,7 @@ export function Select({
       vec.set((offsetX / width) * 2 - 1, -(offsetY / height) * 2 + 1)
     }
 
-    function onSelectStart(event) {
+    function onSelectStart(event: PointerEvent) {
       if (controls) (controls as any).enabled = false
       raycaster.enabled = false
       isDown = true
@@ -87,7 +89,7 @@ export function Select({
       startPoint.y = event.clientY
     }
 
-    function onSelectMove(event) {
+    function onSelectMove(event: PointerEvent) {
       pointBottomRight.x = Math.max(startPoint.x, event.clientX)
       pointBottomRight.y = Math.max(startPoint.y, event.clientY)
       pointTopLeft.x = Math.min(startPoint.x, event.clientX)
@@ -107,8 +109,8 @@ export function Select({
       }
     }
 
-    function pointerDown(event) {
-      if (event.shiftKey) {
+    function pointerDown(event: PointerEvent) {
+      if (isActive(event)) {
         onSelectStart(event)
         prepareRay(event, selBox.startPoint)
       }
@@ -130,7 +132,7 @@ export function Select({
       }
     }
 
-    function pointerUp(event) {
+    function pointerUp(event: PointerEvent) {
       if (isDown) onSelectOver()
     }
 
